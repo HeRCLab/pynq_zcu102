@@ -1,64 +1,47 @@
-# STEPS to Setup PYNQ on ZCU102 Board
+# PYNQ ZCU102 Setup:
 
-## Note:
-- This git clone should **not** be on NFS.
+## STEPS to setup pynq on zcu102 board:
 
-## Dependencies:
-- Vivado 2022.1
-- Petalinux 2022.1
+Note: this git clone should not be on nfs.
 
-### Steps:
+Dependencies: Vivado 2022.1 and petalinux 2022.1
 
-```bash
-# Clone the PYNQ repository
-git clone https://github.com/Xilinx/PYNQ.git
-cd PYNQ
+1. git clone [https://github.com/Xilinx/PYNQ.git](https://github.com/Xilinx/PYNQ.git)
+2. cd PYNQ
+3. cd sdbuild/scripts
+4. ./setup\_host.sh
+5. source /opt/tools/petalinux/settings.sh
+6. source /tools/xilinx/Vivado/2022.1/settings64.sh
+7. download zcu102 bsp file from [https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/embedded-design-tools/archive.html](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/embedded-design-tools/archive.html)
+8. cd ../../
+9. cp -rf ./boards/ZCU104 ./boards/ZCU102
+10. &#x20;rm -rf ./boards/ZCU102/petalinux\_bsp/
+11. mv \~/Downloads/xilinx-zcu102-v2022.1-final.bsp ./boards/ZCU102/
+12. mv ./boards/ZCU104/ZCU104.spec ./boards/ZCU102/ZCU102.spec
+13. vim ./boards/ZCU102/ZCU102.spec
+14. modify the content as follows:\
+    ARCH\_ZCU102 := aarch64 BSP\_ZCU102 := xilinx-zcu102-v2022.1-final.bsp
 
-# Setup the host environment
-cd sdbuild/scripts
-./setup_host.sh
+    FPGA\_MANAGER\_ZCU104 := 1
 
-# Source the required settings
-source /opt/tools/petalinux/settings.sh
-source /tools/xilinx/Vivado/2022.1/settings64.sh
+    STAGE4\_PACKAGES\_ZCU102 := xrt pynq ethernet sensorconf boot\_leds pynq\_peripherals\
 
-# Download the ZCU102 BSP file
-# Download from: https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/embedded-design-tools/archive.html
+15. &#x20;Download the ROOTFS and Pynq prebuilt source distribution from [https://www.pynq.io/boards.html](https://www.pynq.io/boards.html)\
+    &#x20;move this file to PYNQ/sdbuild/prebuilt/pynq\_rootfs.aarch64.tar.gz\
+    and the sdist file to PYNQ/sdbuild/prebuilt/pynq\_sdist.tar.gz\
+    make sure the names of the files are rename to pynq\_rootfs.aarch64.tar.gz and pynq\_sdist.tar.gz
+16. cd PYNQ/sdbuild&#x20;
+17. make BOARDS=ZCU102
+18. This will give an pynq image named ZCU102.img in the sdbuild/output directory.
+19. Now to write this image onto the sd card:\
+    check where the sd card is mounted using:\
+    df -T and check the partition name&#x20;
+20. Use this command to write onto the sd card the /dev/sdb (should be without number):\
+    sudo dd bs=1M if=ZCU102.img of=/dev/sdb
 
-# Modify the board setup
-cd ../../
-cp -rf ./boards/ZCU104 ./boards/ZCU102
-rm -rf ./boards/ZCU102/petalinux_bsp/
-mv ~/Downloads/xilinx-zcu102-v2022.1-final.bsp ./boards/ZCU102/
-mv ./boards/ZCU104/ZCU104.spec ./boards/ZCU102/ZCU102.spec
 
-# Edit the ZCU102.spec file
-vim ./boards/ZCU102/ZCU102.spec
 
-# Modify the content of ZCU102.spec as follows:
-# ARCH_ZCU102 := aarch64
-# BSP_ZCU102 := xilinx-zcu102-v2022.1-final.bsp
-# FPGA_MANAGER_ZCU102 := 1
-# STAGE4_PACKAGES_ZCU102 := xrt pynq ethernet sensorconf boot_leds pynq_peripherals
 
-# Download the ROOTFS and Pynq prebuilt source distribution
-# Download from: https://www.pynq.io/boards.html
 
-# Move the downloaded files to the required directories
-mv /path/to/downloaded/pynq_rootfs.aarch64.tar.gz PYNQ/sdbuild/prebuilt/pynq_rootfs.aarch64.tar.gz
-mv /path/to/downloaded/pynq_sdist.tar.gz PYNQ/sdbuild/prebuilt/pynq_sdist.tar.gz
 
-# Make sure the files are renamed as:
-# - pynq_rootfs.aarch64.tar.gz
-# - pynq_sdist.tar.gz
 
-# Build the PYNQ image
-cd PYNQ/sdbuild
-make BOARDS=ZCU102
-
-# Write the image to the SD card
-# Check where the SD card is mounted
-df -T
-
-# Use the following command to write the image onto the SD card (replace /dev/sdb with your SD card's device name):
-sudo dd bs=1M if=sdbuild/output/ZCU102.img of=/dev/sdb
