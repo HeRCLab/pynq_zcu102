@@ -41,6 +41,19 @@ Dependencies: Vivado 2022.1 and petalinux 2022.1
 
 
 
+For Starting the XVC server onto the board put this in your jupyter notebook:\
+from pynq.lib.debugbridge import DebugBridge from pynqutils.runtime.repr\_dict import ReprDict
+
+bridge\_desc = ReprDict(ol.ip\_dict\["debug\_bridge\_0"]) # ol is the Overlay bridge = DebugBridge(bridge\_desc) bridge.start\_xvc\_server(bufferLen=4096, serverAddress="0.0.0.0", serverPort=2542, reconnect=True, verbose=True)
+
+
+
+Stopping the server:\
+\
+bridge.stop\_xvc\_server()
+
+
+
 
 
 
